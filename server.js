@@ -1,11 +1,9 @@
-const express = require('express')
-const cors = require("cors");
-const app = express()
+const express = require('express');
+const app = express();
 
 const port = 8000;
 
 let clients = [];
-let facts = [];
 let i = 0;
 
 const headers = {
@@ -21,13 +19,14 @@ app.use(express.urlencoded({ extended: false }));
 app.get('/', (req, res) => {
   res.writeHead(200, headers);
 
+  // 접속하는 순서대로 이메일 등록
   const userEmail = `test_${i}@email.com`;
   i = i + 1;
 
+  // 데이터를 보내면, 
+  res.write(`data: tt\n\n`);
+
   console.log("연결된 유저:", userEmail);
-  // 클라이언트에게 자기 유저이메일 보내기
-  const data = `data: 연결된 email ${userEmail}\n\n`;
-  res.write(data);
 
   const newClient = {
     userEmail: userEmail,
@@ -45,17 +44,24 @@ app.get('/', (req, res) => {
 app.post('/chat', (req, res) => {
   const { userEmail, message } = req.body;
 
-  console.log(userEmail + '에게: ' + message);
+  const newChat = {
+    newMessage: true,
+    userName: "행복이",
+    chatText: message,
+    createdAt: new Date(),
+    me: false,    
+  }
 
   clients.forEach(client => {
     if (client.userEmail === userEmail) {
-      client.res.write(`data: ${message}\n\n`);
+      client.res.write(`data: ${JSON.stringify(newChat)}\n\n`);
     }
   });
 
   return res.json(message);
 });
 
+// 현재 연결된 유저 터미널로 보기
 app.get('/test', (req, res) => {
   console.log("현재 있는 userEmail:");
   clients.forEach((el, idx) => {
@@ -63,7 +69,6 @@ app.get('/test', (req, res) => {
   });
   res.send({msg:"성공"});
 });
-
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`)
